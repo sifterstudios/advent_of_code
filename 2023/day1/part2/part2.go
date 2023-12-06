@@ -14,7 +14,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			print("Couldn't close test input file")
+		}
+	}(file)
 
 	pattern := regexp.MustCompile(`\d|one|two|three|four|five|six|seven|eight|nine`)
 	scanner := bufio.NewScanner(file)
@@ -96,7 +101,7 @@ func checkForDudusRightSide(rightmostMatch, line string) (updatedRightMatch stri
 
 	numbers := []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 	matchString := ""
-	for i := len(line); len(line) > i; i-- {
+	for i := len(line) - 1; i >= 0; i-- {
 		matchString = string(line[i]) + matchString
 
 		for _, number := range numbers {
