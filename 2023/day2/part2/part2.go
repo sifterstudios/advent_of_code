@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	file, err := os.Open("part1_input")
+	file, err := os.Open("part2_input")
 	if err != nil {
 		panic(err)
 	}
@@ -23,6 +23,9 @@ func main() {
 
 	sumPossibleGames := 0
 	maxBlue, maxRed, maxGreen := 14, 12, 13
+	minPossibleBlue, minPossibleRed, minPossibleGreen := 0, 0, 0
+	currentBlue, currentRed, currentGreen := 0, 0, 0
+	sumPowerCubes := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -41,6 +44,11 @@ func main() {
 
 					if numberOfCubes > maxBlue {
 						gameNumber = 0
+					} else {
+						if numberOfCubes > minPossibleBlue {
+							minPossibleBlue = numberOfCubes
+							currentBlue = numberOfCubes
+						}
 					}
 				}
 				if strings.Contains(color, "red") {
@@ -48,6 +56,11 @@ func main() {
 
 					if numberOfCubes > maxRed {
 						gameNumber = 0
+					} else {
+						if numberOfCubes > minPossibleRed {
+							minPossibleRed = numberOfCubes
+							currentRed = numberOfCubes
+						}
 					}
 				}
 				if strings.Contains(color, "green") {
@@ -55,15 +68,29 @@ func main() {
 
 					if numberOfCubes > maxGreen {
 						gameNumber = 0
+					} else {
+						if numberOfCubes > minPossibleGreen {
+							minPossibleGreen = numberOfCubes
+							currentGreen = numberOfCubes
+						}
 					}
 				}
 			}
 		}
 
 		println(gameNumber)
-		sumPossibleGames += gameNumber
+		if gameNumber != 0 {
+			sumPowerCubes += currentBlue * currentRed * currentGreen
+		}
+		currentBlue = 0
+		currentRed = 0
+		currentGreen = 0
+		minPossibleBlue = 0
+		minPossibleRed = 0
+		minPossibleGreen = 0
 	}
 	println("Sum possible games", sumPossibleGames)
+	println("Sum power cubes", sumPowerCubes)
 }
 
 func getNumberOfCubes(numberAndColor, color string) (result int) {
