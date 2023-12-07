@@ -22,7 +22,7 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	sumPossibleGames := 0
-	maxBlue, maxRed, maxGreen := 14, 12, 13
+	maxBlue, maxRed, maxGreen := 999, 999, 999
 	minPossibleBlue, minPossibleRed, minPossibleGreen := 0, 0, 0
 	currentBlue, currentRed, currentGreen := 0, 0, 0
 	sumPowerCubes := 0
