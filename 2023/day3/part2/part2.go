@@ -6,27 +6,20 @@ import (
 	"strconv"
 )
 
-type gear struct {
-	starLocation       []int
-	isNumberAbove      bool
-	isNumberBelow      bool
-	numberAbove        int
-	numberBelow        int
-	lastSearchedIndex  int
-	goingBackwards     bool
-	wasLastIndexNumber bool
+type numberEntry struct {
+	line       int
+	start      int
+	end        int
+	fullNumber int
 }
 
-func newGear() gear {
-	return gear{
-		starLocation: []int{-1, -1}, isNumberAbove: false,
-		isNumberBelow: false, numberAbove: -1, numberBelow: -1,
-		lastSearchedIndex: 0, goingBackwards: false, wasLastIndexNumber: false,
-	}
+type starEntry struct {
+	line int
+	idx  int
 }
 
 func main() {
-	file, err := os.Open("part2_input")
+	file, err := os.Open("./input/day3_part2_input")
 	if err != nil {
 		println("Error opening file")
 	}
@@ -45,92 +38,83 @@ func main() {
 	for i := 0; i < len(allLines); i++ {
 		sumSchematics = getSumOfValidSchematics(allLines, i, err, sumSchematics)
 	}
-	getSumOfGears(allLines, 0, &sumGears)
+	getSumOfGears(allLines, &sumGears)
 	println("Sum of schematics: ", sumSchematics)
 	println("Sum of gears: ", sumGears)
 }
 
-func getSumOfGears(allLines []string, lineNumber int, sumGears *int, gearOpt ...gear) {
-	gear := gear{}
-	if gearOpt == nil {
-		gear = newGear()
-	} else {
-		gear = gearOpt[0]
+func getSumOfGears(allLines []string, sumGears *int) {
+	numberEntries := []numberEntry{}
+	starEntries := []starEntry{}
+
+	for i := 0; i < len(allLines); i++ {
+		for j := 0; j < len(allLines[i]); j++ {
+			if isNumber(string(allLines[i][j])) {
+				numberEntries = append(numberEntries, numberEntry{i, j, -1, -1})
+				// Now we've fonud the start of a number, find the end of it
+				for j < len(allLines[i]) && isNumber(string(allLines[i][j])) {
+					j++
+				}
+				// Was no longer a number or end of line
+				numberEntries[len(numberEntries)-1].end = j - 1 // the -1 is questionable, remember this in test
+				numberEntries[len(numberEntries)-1].fullNumber, _ = strconv.Atoi(getFullNumber(allLines[i], j-1, true))
+			}
+
+			if string(allLines[i][j]) == "*" {
+				println("Found a star at ", i, j)
+				starEntries = append(starEntries, starEntry{i, j})
+
+			}
+		}
 	}
-
-	// End case
-	if (gear.lastSearchedIndex > len(allLines[lineNumber])) &&
-		lineNumber == len(allLines)-1 {
-		println("End of input, no more gears to find")
-		return
+	println("Collected numbers and stars")
+	for star := 0; star < len(starEntries); star++ {
+		numbersFound := checkForNumberInAllDirections(starEntries[star], numberEntries)
+		if len(numbersFound) == 2 {
+			// Found a gear
+			*sumGears += numbersFound[0] * numbersFound[1]
+		}
 	}
-
-	// Handle end of line
-	if gear.lastSearchedIndex == len(allLines[lineNumber])-2 {
-		println("End of line, moving to next line")
-		gear.lastSearchedIndex = 0
-		getSumOfGears(allLines, lineNumber+1, sumGears, gear)
-		return
-	} else {
-	}
-
-	gear.lastSearchedIndex++ // I cheated, I know the first index is never a star
-	// Search for star
-	char := string(allLines[lineNumber][gear.lastSearchedIndex])
-
-	// Handle if I don't find star
-	if char != "*" {
-		getSumOfGears(allLines, lineNumber, sumGears, gear)
-		return
-	}
-
-	println("Found star at line", lineNumber, "index", gear.lastSearchedIndex)
-	lineAbove := allLines[lineNumber-1]
-	lineBelow := allLines[lineNumber+1]
-	i := gear.lastSearchedIndex
-
-	// Search for number above and one to both sides
-	if !isNumber(string(lineAbove[i])) &&
-		!isNumber(string(lineAbove[i-1])) &&
-		!isNumber(string(lineAbove[i+1])) {
-		println("No number above, moving on...")
-		getSumOfGears(allLines, lineNumber, sumGears, gear)
-		return
-	}
-	println("Found number above at line", lineNumber-1, "index", gear.lastSearchedIndex)
-	// Search for number below and one to both sides
-	if !isNumber(string(lineAbove[i])) &&
-		!isNumber(string(lineAbove[i-1])) &&
-		!isNumber(string(lineAbove[i+1])) {
-		println("No number below, moving on...")
-		getSumOfGears(allLines, lineNumber, sumGears, gear)
-		return
-	}
-	println("Found number both above and below")
-	// If number above and below, find the whole number by going first forwards, then backwards until i hit a symbol
-	i1, i2 := findWhereToStartSearching(lineAbove, i)
-	numberAbove := getFullNumber(lineAbove, i1, false) + getFullNumber(lineAbove, i2, true)
-	println("Number above is", numberAbove)
-
-	i1, i2 = findWhereToStartSearching(lineBelow, i)
-	numberBelow := getFullNumber(lineBelow, i1, false) + getFullNumber(lineBelow, i2, true)
-	println("Number below is", numberBelow)
-
-	// If there's a number both above and below, multiply them and add to sumGears and continue searching
-	return
 }
 
-func findWhereToStartSearching(lineAbove string, i int) (i1 int, reverse bool) {
-	if isNumber(string(lineAbove[i-1])) {
-		return i, i - 1
+func checkForNumberInAllDirections(star starEntry, numberEntries []numberEntry) (numbersFound []int) {
+	idx, line := star.idx, star.line
+
+	// ABOVE
+	above := numberInSquare(numberEntries, line-1, idx)
+	if above != -1 {
+		numbersFound = append(numbersFound, above)
 	}
-	if isNumber(string(lineAbove[i])) {
-		return i, i - 1
+
+	below := numberInSquare(numberEntries, line+1, idx)
+	if below != -1 {
+		numbersFound = append(numbersFound, below)
 	}
-	if isNumber(string(lineAbove[i+1])) {
-		return i + 1, i
+
+	sides := numberInSquare(numberEntries, line, idx)
+	if sides != -1 {
+		numbersFound = append(numbersFound, sides)
 	}
-	return -1, -1 // This will cause intended panic
+
+	if len(numbersFound) > 2 {
+		println("Something is terribly wrong, found more than 2 numbers at location ", line, idx)
+	}
+
+	return numbersFound
+}
+
+func numberInSquare(numberEntries []numberEntry, line int, idx int) (number int) {
+	for number := 0; number < len(numberEntries); number++ {
+		numberEntry := numberEntries[number]
+		if numberEntry.line == line {
+			for i := idx - 1; i <= idx+1; i++ {
+				if numberEntry.start <= i && i <= numberEntry.end {
+					return numberEntry.fullNumber
+				}
+			}
+		}
+	}
+	return -1
 }
 
 func getSumOfValidSchematics(allLines []string, i int, err error, sumSchematics int) int {

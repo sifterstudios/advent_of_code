@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	file, err := os.Open("part1_input")
+	file, err := os.Open("./input/day3_part1_input")
 	if err != nil {
 		println("Error opening file")
 	}
@@ -54,10 +54,8 @@ func main() {
 			}
 
 			if sideHit || aboveHit || belowHit {
-				println(fullNumberString + " is a schematic!")
 				sumSchematics += fullNumber
 			} else if fullNumberString != "" {
-				println(fullNumberString + " is NOT a schematic!")
 			}
 
 		}
