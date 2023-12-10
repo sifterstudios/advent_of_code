@@ -38,7 +38,6 @@ func main() {
 			newTime := time - msWaited
 			if (msWaited * newTime) > distance {
 				recordCount++
-				// println("msWaited: ", msWaited, "newTime: ", newTime, "distance: ", distance, "recordCount: ", recordCount)
 			}
 		}
 		possibleRecords = append(possibleRecords, recordCount)
