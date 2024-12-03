@@ -2,15 +2,12 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	cwd, _ := os.Getwd()
-	fmt.Println("Current directory:", cwd)
 	file, err := os.Open("./2024/day2/part2/part2_input")
 	if err != nil {
 		println("Error opening file")
