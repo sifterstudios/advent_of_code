@@ -1,0 +1,35 @@
+package main
+
+import (
+	"bufio"
+	"os"
+)
+
+// type gear struct {
+// 	starLocation       []int
+// 	isNumberAbove      bool
+// 	isNumberBelow      bool
+// 	numberAbove        int
+// 	numberBelow        int
+// 	lastSearchedIndex  int
+// 	goingBackwards     bool
+// 	wasLastIndexNumber bool
+// }
+
+func main() {
+	file, err := os.Open("part2_input")
+	if err != nil {
+		println("Error opening file")
+	}
+
+	scanner := bufio.NewScanner(file)
+	allLines := []string{}
+	defer file.Close()
+
+	for scanner.Scan() {
+		allLines = append(allLines, scanner.Text())
+	}
+
+	for i := 0; i < len(allLines); i++ {
+	}
+}
